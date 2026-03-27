@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Safe Harbor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --primary: #7C5CBF;
+  --primary-light: #9B7ED4;
+  --primary-dark: #5E3FA3;
+  --lavender: #EDE0F5;
+  --lavender-light: #F7F0FF;
+  --pink: #F2A7C3;
+  --pink-light: #FCE8F2;
+  --bg: #FDF8FF;
+  --card: #FFFFFF;
+  --text: #3D2B5E;
+  --text-light: #7A6990;
+  --border: #E2D4F0;
+  --success: #6DBF8F;
+  --success-light: #E8F7EF;
+  --warning: #F4C542;
+  --warning-light: #FEF8E3;
+  --danger: #E57373;
+  --danger-light: #FDEAEA;
+  --shadow: 0 2px 12px rgba(124,92,191,0.10);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+/* SIDEBAR */
+#sidebar {
+  width: 230px; min-height: 100vh; background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 100%);
+  display: flex; flex-direction: column; padding: 0; position: fixed; top: 0; left: 0; z-index: 100;
+  box-shadow: 4px 0 20px rgba(94,63,163,0.18);
+}
+#sidebar-header { padding: 28px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+#sidebar-header h1 { color: #fff; font-size: 1.2rem; font-weight: 700; letter-spacing: 0.3px; }
+#sidebar-header p { color: rgba(255,255,255,0.65); font-size: 0.78rem; margin-top: 3px; }
+#nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+  color: rgba(255,255,255,0.78); cursor: pointer; font-size: 0.88rem; font-weight: 500;
+  transition: all 0.18s; border-left: 3px solid transparent; user-select: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.10); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,0.16); color: #fff; border-left-color: var(--pink); }
+.nav-item .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+.nav-section-label { color: rgba(255,255,255,0.38); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 14px 20px 4px; }
+#sidebar-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.15); }
+#sidebar-footer button { width: 100%; padding: 8px; background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.83rem; font-weight: 500; }
+#sidebar-footer button:hover { background: rgba(255,255,255,0.25); }
+
+/* MAIN */
+#main { margin-left: 230px; flex: 1; padding: 28px; min-height: 100vh; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.page-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); }
+.page-subtitle { font-size: 0.85rem; color: var(--text-light); margin-top: 2px; }
+
+/* CARDS */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 18px; border: 1px solid var(--border); }
+.card-title { font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 14px; }
+
+/* STATS GRID */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.stat-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; border: 1px solid var(--border); }
+.stat-label { font-size: 0.78rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); margin-top: 4px; }
+.stat-sub { font-size: 0.78rem; color: var(--text-light); margin-top: 2px; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 0.87rem; font-weight: 600; transition: all 0.18s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: var(--lavender); color: var(--primary-dark); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--danger-light); color: var(--danger); }
+.btn-danger:hover { background: #f5c0c0; }
+.btn-success { background: var(--success-light); color: #3a7d57; }
+.btn-success:hover { background: #cceedd; }
+.btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+th { text-align: left; padding: 10px 12px; background: var(--lavender); color: var(--primary-dark); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px; }
+th:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+th:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--lavender-light); }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+.empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+.empty-state p { font-size: 0.9rem; }
+
+/* BADGES */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.badge-success { background: var(--success-light); color: #3a7d57; }
+.badge-warning { background: var(--warning-light); color: #a07a00; }
+.badge-danger { background: var(--danger-light); color: #c0392b; }
+.badge-info { background: var(--lavender); color: var(--primary-dark); }
+.badge-neutral { background: #f0f0f0; color: #666; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(61,43,94,0.35); z-index: 999; justify-content: center; align-items: flex-start; padding: 40px 20px; overflow-y: auto; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: var(--radius); box-shadow: 0 8px 40px rgba(94,63,163,0.22); padding: 28px; width: 100%; max-width: 580px; margin: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-size: 1.1rem; font-weight: 700; color: var(--primary-dark); }
+.modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-light); line-height: 1; }
+.modal-close:hover { color: var(--danger); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* FORMS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+input, select, textarea {
+  padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 0.88rem; color: var(--text); background: #fff; font-family: inherit;
+  transition: border 0.18s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+textarea { resize: vertical; min-height: 80px; }
+
+/* SEVERITY / TAG COLORS */
+.sev-low { color: #3a7d57; }
+.sev-med { color: #a07a00; }
+.sev-high { color: #c0392b; }
+.sev-extreme { color: #8B0000; font-weight: 700; }
+
+/* CHILD INFO */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.info-item label { font-size: 0.8rem; color: var(--text-light); font-weight: 600; display: block; margin-bottom: 2px; }
+.info-item span { font-size: 0.95rem; color: var(--text); font-weight: 500; }
+
+/* ALERT BANNER */
+.alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.87rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.alert-info { background: var(--lavender); color: var(--primary-dark); border: 1px solid var(--border); }
+.alert-warning { background: var(--warning-light); color: #7a5500; border: 1px solid #f0d080; }
+.alert-success { background: var(--success-light); color: #2a6040; border: 1px solid #b0e0c8; }
+
+/* PRINT / PDF */
+@media print {
+  #sidebar, .btn-group, .no-print { display: none !important; }
+  #main { margin-left: 0; padding: 10px; }
+  .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+  .page { display: block !important; }
+  .page:not(.print-target) { display: none !important; }
+}
+
+/* ONEDRIVE FIRST-RUN */
+#onedrive-modal .modal { max-width: 480px; }
+#onedrive-modal .icon-big { font-size: 3rem; text-align: center; margin-bottom: 12px; }
+#onedrive-modal p { color: var(--text-light); font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  #sidebar { width: 60px; }
+  .nav-item span { display: none; }
+  .nav-section-label { display: none; }
+  #sidebar-header p, #sidebar-header h1 { display: none; }
+  #main { margin-left: 60px; padding: 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+}
+
+.timeline-item { padding: 14px 0; border-bottom: 1px solid var(--border); display: flex; gap: 14px; }
+.timeline-item:last-child { border-bottom: none; }
+.timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+.timeline-dot.danger { background: var(--danger); }
+.timeline-dot.warning { background: var(--warning); }
+.timeline-dot.success { background: var(--success); }
+.timeline-content { flex: 1; }
+.timeline-date { font-size: 0.78rem; color: var(--text-light); font-weight: 600; }
+.timeline-text { font-size: 0.9rem; margin-top: 2px; }
+
+.chip { display: inline-block; background: var(--lavender); color: var(--primary-dark); border-radius: 20px; padding: 2px 10px; font-size: 0.76rem; font-weight: 600; margin: 2px; }
+
+#backup-notice { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); box-shadow: var(--shadow); font-size: 0.88rem; font-weight: 600; z-index: 9999; display: none; }
+
+.progress-bar-wrap { background: var(--lavender); border-radius: 20px; height: 10px; overflow: hidden; margin-top: 6px; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); border-radius: 20px; transition: width 0.5s; }
+</style>
+</head>
+<body>
+
+<!-- ONEDRIVE FIRST-RUN MODAL -->
+<div class="modal-overlay open" id="onedrive-modal">
+  <div class="modal">
+    <div style="text-align:center">
+      <div style="font-size:3rem;margin-bottom:10px">☁️</div>
+      <div class="modal-title" style="justify-content:center;font-size:1.3rem;margin-bottom:10px">Welcome to My Safe Harbor</div>
+    </div>
+    <p style="color:var(--text-light);font-size:0.9rem;line-height:1.7;margin-bottom:16px">
+      This dashboard keeps all your records private and secure on your device. To protect your data, we recommend saving backups to your OneDrive folder every week — we'll do this automatically every Friday.
+    </p>
+    <p style="color:var(--text-light);font-size:0.9rem;line-height:1.7;margin-bottom:16px">
+      Please locate your OneDrive folder on your computer and copy the path below (e.g., <strong>C:\Users\YourName\OneDrive\SafeHarborBackups</strong>). Create a new folder there called <strong>SafeHarborBackups</strong> if it doesn't exist yet.
+    </p>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>OneDrive Backup Folder Path</label>
+      <input type="text" id="onedrive-path-input" placeholder="C:\Users\YourName\OneDrive\SafeHarborBackups" />
+    </div>
+    <div class="form-group" style="margin-bottom:6px">
+      <label>Your Name (optional, for reports)</label>
+      <input type="text" id="user-name-input" placeholder="Your first name" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="dismissOneDrive()">Skip for now</button>
+      <button class="btn btn-primary" onclick="saveOneDrive()">Save & Get Started</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>⚓ My Safe Harbor</h1>
+    <p id="sidebar-username">Your private record system</p>
+  </div>
+  <div id="nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="icon">🏠</span><span>Dashboard</span></div>
+
+    <div class="nav-section-label">Financial</div>
+    <div class="nav-item" onclick="showPage('support')" id="nav-support"><span class="icon">💳</span><span>Child Support</span></div>
+    <div class="nav-item" onclick="showPage('expenses')" id="nav-expenses"><span class="icon">🧾</span><span>Shared Expenses</span></div>
+    <div class="nav-item" onclick="showPage('assets')" id="nav-assets"><span class="icon">🏠</span><span>Assets & Debts</span></div>
+
+    <div class="nav-section-label">Safety & Legal</div>
+    <div class="nav-item" onclick="showPage('incidents')" id="nav-incidents"><span class="icon">🛡️</span><span>Incident Journal</span></div>
+    <div class="nav-item" onclick="showPage('communications')" id="nav-communications"><span class="icon">💬</span><span>Communication Log</span></div>
+    <div class="nav-item" onclick="showPage('visitation')" id="nav-visitation"><span class="icon">📅</span><span>Missed Visits</span></div>
+    <div class="nav-item" onclick="showPage('court')" id="nav-court"><span class="icon">⚖️</span><span>Court & Legal</span></div>
+    <div class="nav-item" onclick="showPage('witnesses')" id="nav-witnesses"><span class="icon">👥</span><span>Witnesses</span></div>
+
+    <div class="nav-section-label">My Family</div>
+    <div class="nav-item" onclick="showPage('child')" id="nav-child"><span class="icon">🧒</span><span>Child Info</span></div>
+    <div class="nav-item" onclick="showPage('contacts')" id="nav-contacts"><span class="icon">📋</span><span>Key Contacts</span></div>
+
+    <div class="nav-section-label">Settings</div>
+    <div class="nav-item" onclick="showPage('settings')" id="nav-settings"><span class="icon">⚙️</span><span>Settings</span></div>
+  </div>
+  <div id="sidebar-footer">
+    <button onclick="exportAllData()">⬇️ Backup Now</button>
+    <button onclick="openFeatureRequest()" style="margin-top:8px;background:rgba(242,167,195,0.25);color:#f2a7c3;">💡 Request a Feature</button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle">Your case at a glance</div>
+    </div>
+    <button class="btn btn-secondary" onclick="exportPagePDF('page-home','Dashboard Overview')">📄 Export PDF</button>
+  </div>
+  <div id="home-alerts"></div>
+  <div class="stats-grid" id="home-stats"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div class="card">
+      <div class="card-title">Recent Incidents</div>
+      <div id="home-incidents"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Upcoming Court Dates</div>
+      <div id="home-court"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Child Support Summary</div>
+      <div id="home-support"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recent Communications</div>
+      <div id="home-comms"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CHILD SUPPORT -->
+<div class="page" id="page-support">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Child Support Tracking</div>
+      <div class="page-subtitle">Log every payment or missed payment</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('support-modal')">+ Add Entry</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-support','Child Support Log')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap">
+      <div class="stat-card" style="flex:1;min-width:140px">
+        <div class="stat-label">Total Received</div>
+        <div class="stat-value" id="cs-total-received">$0</div>
+      </div>
+      <div class="stat-card" style="flex:1;min-width:140px">
+        <div class="stat-label">Total Missed</div>
+        <div class="stat-value" style="color:var(--danger)" id="cs-total-missed">$0</div>
+      </div>
+      <div class="stat-card" style="flex:1;min-width:140px">
+        <div class="stat-label">Missed Payments</div>
+        <div class="stat-value" style="color:var(--warning)" id="cs-missed-count">0</div>
+      </div>
+      <div class="stat-card" style="flex:1;min-width:140px">
+        <div class="stat-label">Court-Ordered Amount</div>
+        <div class="stat-value" id="cs-ordered">
+          <span id="cs-ordered-display" style="font-size:1rem;cursor:pointer" onclick="editOrderedAmount()">Set amount ✏️</span>
+        </div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Status</th><th>Amount</th><th>Method</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="support-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="support-empty"><div class="icon">💳</div><p>No payments logged yet. Add your first entry above.</p></div>
+  </div>
+</div>
+
+<!-- INCIDENTS -->
+<div class="page" id="page-incidents">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Incident Journal</div>
+      <div class="page-subtitle">Private, timestamped record of abusive or concerning incidents</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('incident-modal')">+ Log Incident</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-incidents','Incident Journal')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="alert alert-warning">⚠️ These records may be used as evidence. Be specific: include dates, times, locations, exact words used, and any witnesses present.</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date & Time</th><th>Type</th><th>Severity</th><th>Description</th><th>Witnesses</th><th>Actions</th></tr></thead>
+        <tbody id="incidents-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="incidents-empty"><div class="icon">🛡️</div><p>No incidents logged. You can add entries here as things occur.</p></div>
+  </div>
+</div>
+
+<!-- VISITATION -->
+<div class="page" id="page-visitation">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Missed Visitation Log</div>
+      <div class="page-subtitle">Track every time he fails to take his scheduled visitation</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('visitation-modal')">+ Log Missed Visit</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-visitation','Missed Visitation Log')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="alert alert-info">📌 Document both when he skips visits AND when he shows up unannounced outside of his scheduled time.</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px">
+    <div class="stat-card"><div class="stat-label">Total Missed</div><div class="stat-value" id="vis-missed">0</div></div>
+    <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value" id="vis-year">0</div></div>
+    <div class="stat-card"><div class="stat-label">Last 90 Days</div><div class="stat-value" id="vis-90">0</div></div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Scheduled Time</th><th>Type</th><th>Reason Given</th><th>Child Present?</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="visitation-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="visitation-empty"><div class="icon">📅</div><p>No missed visits logged yet.</p></div>
+  </div>
+</div>
+
+<!-- COMMUNICATIONS -->
+<div class="page" id="page-communications">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Communication Log</div>
+      <div class="page-subtitle">Log all contact with him — text, call, email, in-person</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('comm-modal')">+ Log Communication</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-communications','Communication Log')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date & Time</th><th>Method</th><th>Initiated By</th><th>Tone</th><th>Summary</th><th>Flagged?</th><th>Actions</th></tr></thead>
+        <tbody id="comm-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="comm-empty"><div class="icon">💬</div><p>No communications logged yet.</p></div>
+  </div>
+</div>
+
+<!-- COURT -->
+<div class="page" id="page-court">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Court & Legal Tracker</div>
+      <div class="page-subtitle">Hearings, deadlines, filings, and outcomes</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('court-modal')">+ Add Date / Filing</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-court','Court & Legal Log')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Location / Court</th><th>Description</th><th>Status</th><th>Outcome</th><th>Actions</th></tr></thead>
+        <tbody id="court-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="court-empty"><div class="icon">⚖️</div><p>No court dates or filings logged yet.</p></div>
+  </div>
+</div>
+
+<!-- EXPENSES -->
+<div class="page" id="page-expenses">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Shared Child Expenses</div>
+      <div class="page-subtitle">Track medical, school, and activity costs</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('expense-modal')">+ Add Expense</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-expenses','Shared Expenses Log')">📄 PDF</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px">
+    <div class="stat-card"><div class="stat-label">Total Expenses</div><div class="stat-value" id="exp-total">$0</div></div>
+    <div class="stat-card"><div class="stat-label">You Paid</div><div class="stat-value" id="exp-me">$0</div></div>
+    <div class="stat-card"><div class="stat-label">He Paid</div><div class="stat-value" id="exp-him">$0</div></div>
+    <div class="stat-card"><div class="stat-label">Unreimbursed (You)</div><div class="stat-value" style="color:var(--danger)" id="exp-owed">$0</div></div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Paid By</th><th>Reimbursed?</th><th>Actions</th></tr></thead>
+        <tbody id="expense-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="expense-empty"><div class="icon">🧾</div><p>No expenses logged yet.</p></div>
+  </div>
+</div>
+
+<!-- ASSETS -->
+<div class="page" id="page-assets">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Assets & Debts</div>
+      <div class="page-subtitle">Inventory for property division</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('asset-modal')">+ Add Item</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-assets','Assets & Debts Inventory')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item / Account</th><th>Type</th><th>Est. Value</th><th>In Whose Name</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="asset-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="asset-empty"><div class="icon">🏠</div><p>No assets or debts listed yet.</p></div>
+  </div>
+</div>
+
+<!-- WITNESSES -->
+<div class="page" id="page-witnesses">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Witness Log</div>
+      <div class="page-subtitle">People who have witnessed relevant events</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('witness-modal')">+ Add Witness</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-witnesses','Witness List')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Relationship</th><th>Phone</th><th>Email</th><th>What They Witnessed</th><th>Actions</th></tr></thead>
+        <tbody id="witness-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="witness-empty"><div class="icon">👥</div><p>No witnesses added yet.</p></div>
+  </div>
+</div>
+
+<!-- CHILD INFO -->
+<div class="page" id="page-child">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Child Information</div>
+      <div class="page-subtitle">Quick reference for medical, school, and emergency details</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="openModal('child-edit-modal')">✏️ Edit Info</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-child','Child Information')">📄 PDF</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div class="card">
+      <div class="card-title">Basic Info</div>
+      <div class="info-grid" id="child-basic-info"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Medical</div>
+      <div id="child-medical-info"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">School</div>
+      <div id="child-school-info"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Emergency Contacts</div>
+      <div id="child-emergency-info"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACTS -->
+<div class="page" id="page-contacts">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Key Contacts</div>
+      <div class="page-subtitle">Attorney, therapist, advocates, and other important contacts</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('contact-modal')">+ Add Contact</button>
+      <button class="btn btn-secondary" onclick="exportPagePDF('page-contacts','Key Contacts')">📄 PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Email</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="contact-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="contact-empty"><div class="icon">📋</div><p>No contacts added yet.</p></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Settings</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Backup & OneDrive</div>
+    <div class="form-group" style="max-width:500px;margin-bottom:14px">
+      <label>OneDrive Backup Folder Path</label>
+      <input type="text" id="settings-onedrive" placeholder="C:\Users\YourName\OneDrive\SafeHarborBackups" />
+    </div>
+    <div class="alert alert-info" style="margin-bottom:14px">⚡ Auto-backup runs every Friday when you open the dashboard. You can also backup manually anytime.</div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      <button class="btn btn-secondary" onclick="exportAllData()">⬇️ Backup Now</button>
+      <button class="btn btn-secondary" onclick="importData()">⬆️ Restore from Backup</button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="card-title">Court-Ordered Support Amount</div>
+    <div class="form-group" style="max-width:300px;margin-bottom:14px">
+      <label>Monthly Amount ($)</label>
+      <input type="number" id="settings-support-amount" placeholder="0.00" />
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+  </div>
+  <div class="card" style="margin-top:18px;border-color:var(--danger)">
+    <div class="card-title" style="color:var(--danger)">Danger Zone</div>
+    <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:14px">Clearing all data is permanent and cannot be undone. Export a backup first.</p>
+    <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+  </div>
+</div>
+
+</main>
+
+<!-- MODALS -->
+
+<!-- Child Support Modal -->
+<div class="modal-overlay" id="support-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Log Child Support Entry</div><button class="modal-close" onclick="closeModal('support-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="cs-date" /></div>
+      <div class="form-group"><label>Status</label>
+        <select id="cs-status">
+          <option value="Received">Received</option>
+          <option value="Partial">Partial Payment</option>
+          <option value="Late">Late Payment</option>
+          <option value="Missed">Missed / Not Paid</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Amount ($)</label><input type="number" id="cs-amount" placeholder="0.00" step="0.01" /></div>
+      <div class="form-group"><label>Payment Method</label>
+        <select id="cs-method">
+          <option value="">-- Select --</option>
+          <option>Bank Transfer</option><option>Cash</option><option>Check</option>
+          <option>State Disbursement Unit</option><option>Venmo/PayPal</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Notes</label><textarea id="cs-notes" placeholder="Any additional details..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('support-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSupport()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Incident Modal -->
+<div class="modal-overlay" id="incident-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Log Incident</div><button class="modal-close" onclick="closeModal('incident-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="inc-date" /></div>
+      <div class="form-group"><label>Time</label><input type="time" id="inc-time" /></div>
+      <div class="form-group"><label>Incident Type</label>
+        <select id="inc-type">
+          <option>Verbal Abuse</option><option>Physical Threat</option><option>Physical Abuse</option>
+          <option>Emotional Abuse</option><option>Financial Abuse</option><option>Harassment</option>
+          <option>Stalking</option><option>Property Damage</option><option>Child-Related Concern</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Severity</label>
+        <select id="inc-severity">
+          <option value="Low">Low — Concerning but not immediate danger</option>
+          <option value="Medium">Medium — Escalating or repeated behavior</option>
+          <option value="High">High — Direct threat or violence</option>
+          <option value="Extreme">Extreme — Emergency situation</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Location</label><input type="text" id="inc-location" placeholder="Where did this occur?" /></div>
+      <div class="form-group full"><label>Description (be as detailed as possible)</label><textarea id="inc-desc" style="min-height:120px" placeholder="What happened? Include exact words used, actions taken, your response..."></textarea></div>
+      <div class="form-group"><label>Witnesses Present</label><input type="text" id="inc-witnesses" placeholder="Names of anyone who saw/heard" /></div>
+      <div class="form-group"><label>Evidence</label><input type="text" id="inc-evidence" placeholder="Photos, screenshots, voicemails, etc." /></div>
+      <div class="form-group full"><label>Injuries or Impact</label><textarea id="inc-injuries" placeholder="Physical injuries, emotional impact, impact on child..."></textarea></div>
+      <div class="form-group full"><label>Actions Taken</label><textarea id="inc-actions" placeholder="Did you call police? Seek medical care? Contact attorney?"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('incident-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIncident()">Save Incident</button>
+    </div>
+  </div>
+</div>
+
+<!-- Visitation Modal -->
+<div class="modal-overlay" id="visitation-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Log Missed / Problem Visit</div><button class="modal-close" onclick="closeModal('visitation-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="vis-date" /></div>
+      <div class="form-group"><label>Scheduled Time</label><input type="time" id="vis-time" /></div>
+      <div class="form-group"><label>Visit Type</label>
+        <select id="vis-type">
+          <option>Missed — No show</option><option>Cancelled — Last minute</option>
+          <option>Cancelled — Advance notice</option><option>Returned early</option>
+          <option>Unannounced visit outside schedule</option><option>Other issue</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Was child ready and present?</label>
+        <select id="vis-child-present"><option>Yes</option><option>No</option><option>N/A</option></select>
+      </div>
+      <div class="form-group full"><label>Reason He Gave</label><textarea id="vis-reason" placeholder="Exact words or reason provided (or 'No reason given')"></textarea></div>
+      <div class="form-group full"><label>Additional Notes</label><textarea id="vis-notes" placeholder="Impact on child, your response, follow-up needed..."></textarea></div>
+      <div class="form-group"><label>How notice was given</label>
+        <select id="vis-notice-method">
+          <option value="">-- Select --</option>
+          <option>Text message</option><option>Phone call</option><option>Email</option>
+          <option>No notice given</option><option>Through attorney</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Child's Reaction</label>
+        <select id="vis-child-reaction">
+          <option value="">-- Select --</option>
+          <option>Upset / Crying</option><option>Confused</option><option>Relieved</option>
+          <option>Indifferent</option><option>Didn't know</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('visitation-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVisitation()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Communication Modal -->
+<div class="modal-overlay" id="comm-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Log Communication</div><button class="modal-close" onclick="closeModal('comm-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="comm-date" /></div>
+      <div class="form-group"><label>Time</label><input type="time" id="comm-time" /></div>
+      <div class="form-group"><label>Method</label>
+        <select id="comm-method">
+          <option>Text Message</option><option>Phone Call</option><option>Email</option>
+          <option>In Person</option><option>Through Attorney</option><option>Voicemail</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Initiated By</label>
+        <select id="comm-initiated"><option>Him</option><option>Me</option><option>Attorney</option><option>Court</option></select>
+      </div>
+      <div class="form-group"><label>Tone / Nature</label>
+        <select id="comm-tone">
+          <option value="Normal">Normal / Cooperative</option>
+          <option value="Tense">Tense / Difficult</option>
+          <option value="Threatening">Threatening</option>
+          <option value="Harassing">Harassing / Repeated</option>
+          <option value="Abusive">Abusive</option>
+          <option value="Positive">Positive</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Flag for Attorney?</label>
+        <select id="comm-flag"><option value="No">No</option><option value="Yes">Yes — needs review</option></select>
+      </div>
+      <div class="form-group full"><label>Summary</label><textarea id="comm-summary" style="min-height:100px" placeholder="What was discussed? Include key statements or demands made..."></textarea></div>
+      <div class="form-group full"><label>Evidence / Screenshots</label><input type="text" id="comm-evidence" placeholder="Note where screenshots are saved, or paste key quotes" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('comm-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveComm()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Court Modal -->
+<div class="modal-overlay" id="court-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Court Date / Legal Filing</div><button class="modal-close" onclick="closeModal('court-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="court-date" /></div>
+      <div class="form-group"><label>Time</label><input type="time" id="court-time" /></div>
+      <div class="form-group"><label>Type</label>
+        <select id="court-type">
+          <option>Hearing</option><option>Mediation</option><option>Deposition</option>
+          <option>Filing Deadline</option><option>Attorney Meeting</option>
+          <option>Custody Evaluation</option><option>Trial</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="court-status">
+          <option>Upcoming</option><option>Completed</option><option>Postponed</option><option>Cancelled</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Location / Court Name</label><input type="text" id="court-location" placeholder="Court name, address, or 'Virtual'" /></div>
+      <div class="form-group full"><label>Description / What to Prepare</label><textarea id="court-desc" placeholder="What is this about? What documents are needed?"></textarea></div>
+      <div class="form-group full"><label>Outcome / Notes</label><textarea id="court-outcome" placeholder="What was decided? Next steps?"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('court-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCourt()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal-overlay" id="expense-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Log Child Expense</div><button class="modal-close" onclick="closeModal('expense-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="exp-date" /></div>
+      <div class="form-group"><label>Category</label>
+        <select id="exp-category">
+          <option>Medical / Dental</option><option>School / Education</option><option>Clothing</option>
+          <option>Activities / Sports</option><option>Childcare / Daycare</option><option>Therapy / Counseling</option>
+          <option>Transportation</option><option>Food</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Description</label><input type="text" id="exp-desc" placeholder="What was purchased or paid for?" /></div>
+      <div class="form-group"><label>Amount ($)</label><input type="number" id="exp-amount" placeholder="0.00" step="0.01" /></div>
+      <div class="form-group"><label>Paid By</label>
+        <select id="exp-paid"><option>Me</option><option>Him</option><option>Split</option><option>Insurance</option></select>
+      </div>
+      <div class="form-group"><label>Reimbursement Status</label>
+        <select id="exp-reimbursed">
+          <option value="N/A">N/A</option>
+          <option value="Owed to me">Owed to me</option>
+          <option value="Requested">Requested</option>
+          <option value="Received">Received</option>
+          <option value="Denied">Denied / Refused</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Notes</label><textarea id="exp-notes" placeholder="Receipt location, any disputes..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('expense-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExpense()">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Asset Modal -->
+<div class="modal-overlay" id="asset-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Asset or Debt</div><button class="modal-close" onclick="closeModal('asset-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Item / Account Name</label><input type="text" id="asset-name" placeholder="e.g., Family Home, Joint Savings, Car Loan" /></div>
+      <div class="form-group"><label>Type</label>
+        <select id="asset-type">
+          <option>Real Estate</option><option>Vehicle</option><option>Bank Account</option>
+          <option>Retirement / 401k</option><option>Investment</option><option>Business</option>
+          <option>Personal Property</option><option>Debt / Loan</option><option>Credit Card</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Estimated Value ($)</label><input type="number" id="asset-value" placeholder="0.00" step="0.01" /></div>
+      <div class="form-group"><label>In Whose Name</label>
+        <select id="asset-owner">
+          <option>Joint</option><option>Mine</option><option>His</option><option>Unknown</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="asset-status">
+          <option>Undivided</option><option>Claimed by Me</option><option>Claimed by Him</option>
+          <option>Agreed Split</option><option>In Dispute</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Notes</label><textarea id="asset-notes" placeholder="Account numbers, location, documentation notes..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('asset-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAsset()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Witness Modal -->
+<div class="modal-overlay" id="witness-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Witness</div><button class="modal-close" onclick="closeModal('witness-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Full Name</label><input type="text" id="wit-name" /></div>
+      <div class="form-group"><label>Relationship</label>
+        <select id="wit-relationship">
+          <option>Family Member</option><option>Friend</option><option>Neighbor</option>
+          <option>Coworker</option><option>Teacher / School Staff</option><option>Medical Provider</option>
+          <option>Police / First Responder</option><option>Other Professional</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Phone</label><input type="tel" id="wit-phone" /></div>
+      <div class="form-group"><label>Email</label><input type="email" id="wit-email" /></div>
+      <div class="form-group full"><label>What They Witnessed / Can Attest To</label><textarea id="wit-knowledge" placeholder="Describe what this person saw, heard, or knows about..."></textarea></div>
+      <div class="form-group full"><label>Notes</label><textarea id="wit-notes" placeholder="Willingness to testify, limitations, etc."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('witness-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWitness()">Save Witness</button>
+    </div>
+  </div>
+</div>
+
+<!-- Contact Modal -->
+<div class="modal-overlay" id="contact-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Key Contact</div><button class="modal-close" onclick="closeModal('contact-modal')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Name</label><input type="text" id="con-name" /></div>
+      <div class="form-group"><label>Role</label>
+        <select id="con-role">
+          <option>Attorney / Lawyer</option><option>Therapist / Counselor</option>
+          <option>Domestic Violence Advocate</option><option>Judge</option><option>Guardian ad Litem</option>
+          <option>Mediator</option><option>Social Worker</option><option>Financial Advisor</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Phone</label><input type="tel" id="con-phone" /></div>
+      <div class="form-group"><label>Email</label><input type="email" id="con-email" /></div>
+      <div class="form-group full"><label>Notes</label><textarea id="con-notes" placeholder="Office hours, case number, billing notes..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('contact-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContact()">Save Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- Child Edit Modal -->
+<div class="modal-overlay" id="child-edit-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header"><div class="modal-title">Edit Child Information</div><button class="modal-close" onclick="closeModal('child-edit-modal')">×</button></div>
+    <div style="font-weight:700;color:var(--primary);margin-bottom:10px;font-size:0.95rem">Basic Info</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Child's Name</label><input type="text" id="ch-name" /></div>
+      <div class="form-group"><label>Date of Birth</label><input type="date" id="ch-dob" /></div>
+      <div class="form-group"><label>Blood Type</label><input type="text" id="ch-blood" placeholder="e.g., A+" /></div>
+      <div class="form-group"><label>Allergies</label><input type="text" id="ch-allergies" placeholder="List any allergies" /></div>
+    </div>
+    <div style="font-weight:700;color:var(--primary);margin:16px 0 10px;font-size:0.95rem">Medical</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Pediatrician Name</label><input type="text" id="ch-ped-name" /></div>
+      <div class="form-group"><label>Pediatrician Phone</label><input type="tel" id="ch-ped-phone" /></div>
+      <div class="form-group full"><label>Insurance Info</label><input type="text" id="ch-insurance" placeholder="Carrier, policy number, group number" /></div>
+      <div class="form-group full"><label>Current Medications</label><textarea id="ch-medications" placeholder="Name, dosage, frequency..."></textarea></div>
+      <div class="form-group full"><label>Medical Notes</label><textarea id="ch-med-notes" placeholder="Diagnoses, special needs, therapy..."></textarea></div>
+    </div>
+    <div style="font-weight:700;color:var(--primary);margin:16px 0 10px;font-size:0.95rem">School</div>
+    <div class="form-grid">
+      <div class="form-group"><label>School Name</label><input type="text" id="ch-school-name" /></div>
+      <div class="form-group"><label>Grade</label><input type="text" id="ch-grade" /></div>
+      <div class="form-group"><label>Teacher Name</label><input type="text" id="ch-teacher" /></div>
+      <div class="form-group"><label>School Phone</label><input type="tel" id="ch-school-phone" /></div>
+      <div class="form-group full"><label>School Notes</label><textarea id="ch-school-notes" placeholder="IEP, 504, counselor name, bus route..."></textarea></div>
+    </div>
+    <div style="font-weight:700;color:var(--primary);margin:16px 0 10px;font-size:0.95rem">Emergency Contacts</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Contact 1 Name & Relationship</label><input type="text" id="ch-ec1-name" /></div>
+      <div class="form-group"><label>Contact 1 Phone</label><input type="tel" id="ch-ec1-phone" /></div>
+      <div class="form-group"><label>Contact 2 Name & Relationship</label><input type="text" id="ch-ec2-name" /></div>
+      <div class="form-group"><label>Contact 2 Phone</label><input type="tel" id="ch-ec2-phone" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('child-edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveChildInfo()">Save Info</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header"><div class="modal-title">Confirm Delete</div><button class="modal-close" onclick="closeModal('delete-modal')">×</button></div>
+    <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:8px">Are you sure you want to delete this entry? This cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('delete-modal')">Cancel</button>
+      <button class="btn btn-danger" id="delete-confirm-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Request Modal -->
+<div class="modal-overlay" id="feature-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">💡 Request a Feature</div>
+      <button class="modal-close" onclick="closeModal('feature-modal')">×</button>
+    </div>
+    <p style="color:var(--text-light);font-size:0.9rem;line-height:1.6;margin-bottom:16px">
+      Have an idea for something that would make this dashboard more helpful? Send it over — I'd love to hear it.
+    </p>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>What would you like to see added or changed?</label>
+      <textarea id="feature-request-text" style="min-height:110px" placeholder="Describe your idea — as much or as little detail as you'd like..."></textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:6px">
+      <label>Your name (optional)</label>
+      <input type="text" id="feature-request-name" placeholder="So I know who to thank!" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('feature-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="sendFeatureRequest()">✉️ Send Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)" />
+
+<!-- Backup notice toast -->
+<div id="backup-notice">✅ Backup downloaded! Save it to your OneDrive folder.</div>
+
+<script>
+// ============================================================
+// DATA LAYER
+// ============================================================
+const STORAGE_KEY = 'safeHarborData';
+
+function getData() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || getDefaultData();
+  } catch(e) { return getDefaultData(); }
+}
+
+function saveData(d) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+}
+
+function getDefaultData() {
+  return {
+    meta: { userName: '', oneDrivePath: '', courtOrderedSupport: 0, lastBackupDate: '' },
+    support: [], incidents: [], visitation: [], communications: [],
+    court: [], expenses: [], assets: [], witnesses: [], contacts: [],
+    child: {
+      name:'', dob:'', bloodType:'', allergies:'',
+      pedName:'', pedPhone:'', insurance:'', medications:'', medNotes:'',
+      schoolName:'', grade:'', teacher:'', schoolPhone:'', schoolNotes:'',
+      ec1Name:'', ec1Phone:'', ec2Name:'', ec2Phone:''
+    }
+  };
+}
+
+let editingId = null;
+let editingSection = null;
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  renderPage(name);
+}
+
+function renderPage(name) {
+  if (name === 'home') renderHome();
+  else if (name === 'support') renderSupport();
+  else if (name === 'incidents') renderIncidents();
+  else if (name === 'visitation') renderVisitation();
+  else if (name === 'communications') renderComms();
+  else if (name === 'court') renderCourt();
+  else if (name === 'expenses') renderExpenses();
+  else if (name === 'assets') renderAssets();
+  else if (name === 'witnesses') renderWitnesses();
+  else if (name === 'contacts') renderContacts();
+  else if (name === 'child') renderChild();
+  else if (name === 'settings') renderSettings();
+}
+
+// ============================================================
+// HOME
+// ============================================================
+function renderHome() {
+  const d = getData();
+  const received = d.support.filter(s => s.status === 'Received').reduce((a,s) => a+parseFloat(s.amount||0),0);
+  const missed = d.support.filter(s => s.status === 'Missed');
+  const upcoming = d.court.filter(c => c.status === 'Upcoming' && new Date(c.date) >= new Date()).sort((a,b) => new Date(a.date)-new Date(b.date));
+
+  document.getElementById('home-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Support Received</div><div class="stat-value">$${received.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">Missed Payments</div><div class="stat-value" style="color:var(--danger)">${missed.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Incidents Logged</div><div class="stat-value" style="color:var(--warning)">${d.incidents.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Missed Visits</div><div class="stat-value">${d.visitation.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Flagged Communications</div><div class="stat-value" style="color:var(--danger)">${d.communications.filter(c=>c.flag==='Yes').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Court Dates Upcoming</div><div class="stat-value" style="color:var(--primary)">${upcoming.length}</div></div>
+  `;
+
+  const alerts = [];
+  if (missed.length > 0) alerts.push(`<div class="alert alert-warning">⚠️ You have ${missed.length} missed child support payment(s) on record.</div>`);
+  const flagged = d.communications.filter(c=>c.flag==='Yes');
+  if (flagged.length > 0) alerts.push(`<div class="alert alert-warning">🚩 ${flagged.length} communication(s) flagged for attorney review.</div>`);
+  const soon = upcoming.filter(c => { const days = (new Date(c.date)-new Date())/(1000*60*60*24); return days <= 14; });
+  if (soon.length > 0) alerts.push(`<div class="alert alert-info">📅 Court date coming up: ${soon[0].type} on ${fmtDate(soon[0].date)}</div>`);
+  document.getElementById('home-alerts').innerHTML = alerts.join('');
+
+  const recentInc = [...d.incidents].sort((a,b)=>new Date(b.date+' '+b.time)-new Date(a.date+' '+a.time)).slice(0,4);
+  document.getElementById('home-incidents').innerHTML = recentInc.length ? recentInc.map(i=>`
+    <div class="timeline-item">
+      <div class="timeline-dot ${i.severity==='High'||i.severity==='Extreme'?'danger':i.severity==='Medium'?'warning':''}"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">${fmtDate(i.date)} ${i.time||''}</div>
+        <div class="timeline-text"><strong>${i.type}</strong> — ${i.description.substring(0,80)}${i.description.length>80?'...':''}</div>
+      </div>
+    </div>`).join('') : '<p style="color:var(--text-light);font-size:0.87rem">No incidents logged.</p>';
+
+  document.getElementById('home-court').innerHTML = upcoming.length ? upcoming.slice(0,4).map(c=>`
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">${fmtDate(c.date)} ${c.time||''}</div>
+        <div class="timeline-text"><strong>${c.type}</strong> — ${c.location||''}</div>
+      </div>
+    </div>`).join('') : '<p style="color:var(--text-light);font-size:0.87rem">No upcoming court dates.</p>';
+
+  const totalOrdered = parseFloat(d.meta.courtOrderedSupport||0);
+  document.getElementById('home-support').innerHTML = `
+    <div class="info-grid" style="margin-bottom:10px">
+      <div class="info-item"><label>Court-Ordered Monthly</label><span>$${totalOrdered.toFixed(2)}</span></div>
+      <div class="info-item"><label>Total Received</label><span style="color:var(--success)">$${received.toFixed(2)}</span></div>
+    </div>
+    ${totalOrdered > 0 ? `<div class="progress-bar-wrap"><div class="progress-bar" style="width:${Math.min(100,(received%(totalOrdered||1))/totalOrdered*100)}%"></div></div><div style="font-size:0.78rem;color:var(--text-light);margin-top:4px">Current month progress</div>` : ''}
+  `;
+
+  const recentComm = [...d.communications].sort((a,b)=>new Date(b.date+' '+b.time)-new Date(a.date+' '+a.time)).slice(0,4);
+  document.getElementById('home-comms').innerHTML = recentComm.length ? recentComm.map(c=>`
+    <div class="timeline-item">
+      <div class="timeline-dot ${c.tone==='Threatening'||c.tone==='Abusive'?'danger':c.tone==='Harassing'?'warning':''}"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">${fmtDate(c.date)} — ${c.method}</div>
+        <div class="timeline-text">${c.tone} ${c.flag==='Yes'?'<span class="badge badge-danger">Flagged</span>':''}</div>
+      </div>
+    </div>`).join('') : '<p style="color:var(--text-light);font-size:0.87rem">No communications logged.</p>';
+}
+
+// ============================================================
+// CHILD SUPPORT
+// ============================================================
+function renderSupport() {
+  const d = getData();
+  const received = d.support.filter(s=>s.status==='Received').reduce((a,s)=>a+parseFloat(s.amount||0),0);
+  const missedAmt = d.support.filter(s=>s.status==='Missed').reduce((a,s)=>a+parseFloat(s.amount||0),0);
+  const missedCount = d.support.filter(s=>s.status==='Missed').length;
+  const ordered = parseFloat(d.meta.courtOrderedSupport||0);
+  document.getElementById('cs-total-received').textContent = '$'+received.toFixed(2);
+  document.getElementById('cs-total-missed').textContent = '$'+missedAmt.toFixed(2);
+  document.getElementById('cs-missed-count').textContent = missedCount;
+  document.getElementById('cs-ordered-display').textContent = ordered>0 ? '$'+ordered.toFixed(2)+'/mo ✏️' : 'Set amount ✏️';
+
+  const tbody = document.getElementById('support-tbody');
+  const empty = document.getElementById('support-empty');
+  const sorted = [...d.support].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  tbody.innerHTML = sorted.map(s=>`
+    <tr>
+      <td>${fmtDate(s.date)}</td>
+      <td><span class="badge ${s.status==='Received'?'badge-success':s.status==='Missed'?'badge-danger':'badge-warning'}">${s.status}</span></td>
+      <td><strong>$${parseFloat(s.amount||0).toFixed(2)}</strong></td>
+      <td>${s.method||'—'}</td>
+      <td style="max-width:200px">${s.notes||'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('support','${s.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('support','${s.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = sorted.length ? 'none' : 'block';
+}
+
+function saveSupport() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), date: v('cs-date'), status: v('cs-status'),
+    amount: v('cs-amount'), method: v('cs-method'), notes: v('cs-notes')
+  };
+  if (editingId) { const i = d.support.findIndex(x=>x.id===editingId); if(i>-1) d.support[i]=entry; }
+  else d.support.push(entry);
+  saveData(d); closeModal('support-modal'); renderSupport(); editingId=null;
+}
+
+// ============================================================
+// INCIDENTS
+// ============================================================
+function renderIncidents() {
+  const d = getData();
+  const tbody = document.getElementById('incidents-tbody');
+  const empty = document.getElementById('incidents-empty');
+  const sorted = [...d.incidents].sort((a,b)=>new Date(b.date+' '+b.time)-new Date(a.date+' '+a.time));
+  const sevClass = {Low:'sev-low',Medium:'sev-med',High:'sev-high',Extreme:'sev-extreme'};
+  tbody.innerHTML = sorted.map(i=>`
+    <tr>
+      <td><strong>${fmtDate(i.date)}</strong><br><span style="font-size:0.8rem;color:var(--text-light)">${i.time||''}</span></td>
+      <td><span class="chip">${i.type}</span></td>
+      <td><span class="${sevClass[i.severity]||''}">${i.severity}</span></td>
+      <td style="max-width:220px">${i.description.substring(0,100)}${i.description.length>100?'...':''}</td>
+      <td style="font-size:0.83rem">${i.witnesses||'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('incidents','${i.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('incidents','${i.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = sorted.length ? 'none' : 'block';
+}
+
+function saveIncident() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), date: v('inc-date'), time: v('inc-time'),
+    type: v('inc-type'), severity: v('inc-severity'), location: v('inc-location'),
+    description: v('inc-desc'), witnesses: v('inc-witnesses'), evidence: v('inc-evidence'),
+    injuries: v('inc-injuries'), actions: v('inc-actions')
+  };
+  if (editingId) { const i = d.incidents.findIndex(x=>x.id===editingId); if(i>-1) d.incidents[i]=entry; }
+  else d.incidents.push(entry);
+  saveData(d); closeModal('incident-modal'); renderIncidents(); editingId=null;
+}
+
+// ============================================================
+// VISITATION
+// ============================================================
+function renderVisitation() {
+  const d = getData();
+  const now = new Date(); const yr = now.getFullYear();
+  const days90 = new Date(now - 90*24*60*60*1000);
+  document.getElementById('vis-missed').textContent = d.visitation.length;
+  document.getElementById('vis-year').textContent = d.visitation.filter(v=>new Date(v.date).getFullYear()===yr).length;
+  document.getElementById('vis-90').textContent = d.visitation.filter(v=>new Date(v.date)>=days90).length;
+  const tbody = document.getElementById('visitation-tbody');
+  const empty = document.getElementById('visitation-empty');
+  const sorted = [...d.visitation].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  tbody.innerHTML = sorted.map(i=>`
+    <tr>
+      <td>${fmtDate(i.date)}</td>
+      <td>${i.scheduledTime||'—'}</td>
+      <td><span class="chip">${i.type}</span></td>
+      <td style="max-width:160px;font-size:0.85rem">${i.reason||'—'}</td>
+      <td>${i.childPresent}</td>
+      <td style="max-width:160px;font-size:0.85rem">${i.notes||'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('visitation','${i.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('visitation','${i.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = sorted.length ? 'none' : 'block';
+}
+
+function saveVisitation() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), date: v('vis-date'), scheduledTime: v('vis-time'),
+    type: v('vis-type'), childPresent: v('vis-child-present'), reason: v('vis-reason'),
+    notes: v('vis-notes'), noticeMethod: v('vis-notice-method'), childReaction: v('vis-child-reaction')
+  };
+  if (editingId) { const i = d.visitation.findIndex(x=>x.id===editingId); if(i>-1) d.visitation[i]=entry; }
+  else d.visitation.push(entry);
+  saveData(d); closeModal('visitation-modal'); renderVisitation(); editingId=null;
+}
+
+// ============================================================
+// COMMUNICATIONS
+// ============================================================
+function renderComms() {
+  const d = getData();
+  const tbody = document.getElementById('comm-tbody');
+  const empty = document.getElementById('comm-empty');
+  const sorted = [...d.communications].sort((a,b)=>new Date(b.date+' '+b.time)-new Date(a.date+' '+a.time));
+  const toneClass = {Threatening:'badge-danger',Abusive:'badge-danger',Harassing:'badge-warning',Tense:'badge-warning',Normal:'badge-neutral',Positive:'badge-success'};
+  tbody.innerHTML = sorted.map(c=>`
+    <tr>
+      <td>${fmtDate(c.date)}<br><span style="font-size:0.8rem;color:var(--text-light)">${c.time||''}</span></td>
+      <td>${c.method}</td>
+      <td>${c.initiatedBy}</td>
+      <td><span class="badge ${toneClass[c.tone]||'badge-neutral'}">${c.tone}</span></td>
+      <td style="max-width:220px;font-size:0.85rem">${c.summary.substring(0,100)}${c.summary.length>100?'...':''}</td>
+      <td>${c.flag==='Yes'?'<span class="badge badge-danger">🚩 Yes</span>':'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('communications','${c.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('communications','${c.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = sorted.length ? 'none' : 'block';
+}
+
+function saveComm() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), date: v('comm-date'), time: v('comm-time'),
+    method: v('comm-method'), initiatedBy: v('comm-initiated'), tone: v('comm-tone'),
+    flag: v('comm-flag'), summary: v('comm-summary'), evidence: v('comm-evidence')
+  };
+  if (editingId) { const i = d.communications.findIndex(x=>x.id===editingId); if(i>-1) d.communications[i]=entry; }
+  else d.communications.push(entry);
+  saveData(d); closeModal('comm-modal'); renderComms(); editingId=null;
+}
+
+// ============================================================
+// COURT
+// ============================================================
+function renderCourt() {
+  const d = getData();
+  const tbody = document.getElementById('court-tbody');
+  const empty = document.getElementById('court-empty');
+  const sorted = [...d.court].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const statClass = {Upcoming:'badge-info',Completed:'badge-success',Postponed:'badge-warning',Cancelled:'badge-neutral'};
+  tbody.innerHTML = sorted.map(c=>`
+    <tr>
+      <td><strong>${fmtDate(c.date)}</strong><br><span style="font-size:0.8rem;color:var(--text-light)">${c.time||''}</span></td>
+      <td><span class="chip">${c.type}</span></td>
+      <td style="font-size:0.85rem">${c.location||'—'}</td>
+      <td style="max-width:180px;font-size:0.85rem">${c.description.substring(0,80)}${c.description.length>80?'...':''}</td>
+      <td><span class="badge ${statClass[c.status]||'badge-neutral'}">${c.status}</span></td>
+      <td style="max-width:160px;font-size:0.85rem">${c.outcome||'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('court','${c.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('court','${c.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = sorted.length ? 'none' : 'block';
+}
+
+function saveCourt() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), date: v('court-date'), time: v('court-time'),
+    type: v('court-type'), status: v('court-status'), location: v('court-location'),
+    description: v('court-desc'), outcome: v('court-outcome')
+  };
+  if (editingId) { const i = d.court.findIndex(x=>x.id===editingId); if(i>-1) d.court[i]=entry; }
+  else d.court.push(entry);
+  saveData(d); closeModal('court-modal'); renderCourt(); editingId=null;
+}
+
+// ============================================================
+// EXPENSES
+// ============================================================
+function renderExpenses() {
+  const d = getData();
+  const total = d.expenses.reduce((a,e)=>a+parseFloat(e.amount||0),0);
+  const me = d.expenses.filter(e=>e.paidBy==='Me').reduce((a,e)=>a+parseFloat(e.amount||0),0);
+  const him = d.expenses.filter(e=>e.paidBy==='Him').reduce((a,e)=>a+parseFloat(e.amount||0),0);
+  const owed = d.expenses.filter(e=>e.paidBy==='Me'&&(e.reimbursed==='Owed to me'||e.reimbursed==='Requested'||e.reimbursed==='Denied')).reduce((a,e)=>a+parseFloat(e.amount||0),0);
+  document.getElementById('exp-total').textContent = '$'+total.toFixed(2);
+  document.getElementById('exp-me').textContent = '$'+me.toFixed(2);
+  document.getElementById('exp-him').textContent = '$'+him.toFixed(2);
+  document.getElementById('exp-owed').textContent = '$'+owed.toFixed(2);
+  const tbody = document.getElementById('expense-tbody');
+  const empty = document.getElementById('expense-empty');
+  const sorted = [...d.expenses].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const reimClass = {'Owed to me':'badge-warning','Requested':'badge-info','Received':'badge-success','Denied':'badge-danger','N/A':'badge-neutral'};
+  tbody.innerHTML = sorted.map(e=>`
+    <tr>
+      <td>${fmtDate(e.date)}</td>
+      <td><span class="chip">${e.category}</span></td>
+      <td>${e.description||'—'}</td>
+      <td><strong>$${parseFloat(e.amount||0).toFixed(2)}</strong></td>
+      <td>${e.paidBy}</td>
+      <td><span class="badge ${reimClass[e.reimbursed]||'badge-neutral'}">${e.reimbursed}</span></td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('expenses','${e.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('expenses','${e.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = sorted.length ? 'none' : 'block';
+}
+
+function saveExpense() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), date: v('exp-date'), category: v('exp-category'),
+    description: v('exp-desc'), amount: v('exp-amount'), paidBy: v('exp-paid'),
+    reimbursed: v('exp-reimbursed'), notes: v('exp-notes')
+  };
+  if (editingId) { const i = d.expenses.findIndex(x=>x.id===editingId); if(i>-1) d.expenses[i]=entry; }
+  else d.expenses.push(entry);
+  saveData(d); closeModal('expense-modal'); renderExpenses(); editingId=null;
+}
+
+// ============================================================
+// ASSETS
+// ============================================================
+function renderAssets() {
+  const d = getData();
+  const tbody = document.getElementById('asset-tbody');
+  const empty = document.getElementById('asset-empty');
+  const sorted = [...d.assets].sort((a,b)=>a.name.localeCompare(b.name));
+  const statClass = {'Undivided':'badge-neutral','Claimed by Me':'badge-info','Claimed by Him':'badge-warning','Agreed Split':'badge-success','In Dispute':'badge-danger'};
+  tbody.innerHTML = sorted.map(a=>`
+    <tr>
+      <td><strong>${a.name}</strong></td>
+      <td><span class="chip">${a.type}</span></td>
+      <td>$${parseFloat(a.value||0).toLocaleString()}</td>
+      <td>${a.owner}</td>
+      <td><span class="badge ${statClass[a.status]||'badge-neutral'}">${a.status}</span></td>
+      <td style="font-size:0.85rem;max-width:180px">${a.notes||'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('assets','${a.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('assets','${a.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = sorted.length ? 'none' : 'block';
+}
+
+function saveAsset() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), name: v('asset-name'), type: v('asset-type'),
+    value: v('asset-value'), owner: v('asset-owner'), status: v('asset-status'), notes: v('asset-notes')
+  };
+  if (editingId) { const i = d.assets.findIndex(x=>x.id===editingId); if(i>-1) d.assets[i]=entry; }
+  else d.assets.push(entry);
+  saveData(d); closeModal('asset-modal'); renderAssets(); editingId=null;
+}
+
+// ============================================================
+// WITNESSES
+// ============================================================
+function renderWitnesses() {
+  const d = getData();
+  const tbody = document.getElementById('witness-tbody');
+  const empty = document.getElementById('witness-empty');
+  tbody.innerHTML = d.witnesses.map(w=>`
+    <tr>
+      <td><strong>${w.name}</strong></td>
+      <td>${w.relationship}</td>
+      <td>${w.phone||'—'}</td>
+      <td>${w.email||'—'}</td>
+      <td style="max-width:220px;font-size:0.85rem">${w.knowledge||'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('witnesses','${w.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('witnesses','${w.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = d.witnesses.length ? 'none' : 'block';
+}
+
+function saveWitness() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), name: v('wit-name'), relationship: v('wit-relationship'),
+    phone: v('wit-phone'), email: v('wit-email'), knowledge: v('wit-knowledge'), notes: v('wit-notes')
+  };
+  if (editingId) { const i = d.witnesses.findIndex(x=>x.id===editingId); if(i>-1) d.witnesses[i]=entry; }
+  else d.witnesses.push(entry);
+  saveData(d); closeModal('witness-modal'); renderWitnesses(); editingId=null;
+}
+
+// ============================================================
+// CONTACTS
+// ============================================================
+function renderContacts() {
+  const d = getData();
+  const tbody = document.getElementById('contact-tbody');
+  const empty = document.getElementById('contact-empty');
+  tbody.innerHTML = d.contacts.map(c=>`
+    <tr>
+      <td><strong>${c.name}</strong></td>
+      <td><span class="chip">${c.role}</span></td>
+      <td>${c.phone||'—'}</td>
+      <td>${c.email||'—'}</td>
+      <td style="font-size:0.85rem">${c.notes||'—'}</td>
+      <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('contacts','${c.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('contacts','${c.id}')">Del</button></div></td>
+    </tr>`).join('');
+  empty.style.display = d.contacts.length ? 'none' : 'block';
+}
+
+function saveContact() {
+  const d = getData();
+  const entry = {
+    id: editingId||genId(), name: v('con-name'), role: v('con-role'),
+    phone: v('con-phone'), email: v('con-email'), notes: v('con-notes')
+  };
+  if (editingId) { const i = d.contacts.findIndex(x=>x.id===editingId); if(i>-1) d.contacts[i]=entry; }
+  else d.contacts.push(entry);
+  saveData(d); closeModal('contact-modal'); renderContacts(); editingId=null;
+}
+
+// ============================================================
+// CHILD INFO
+// ============================================================
+function renderChild() {
+  const d = getData();
+  const c = d.child;
+  const age = c.dob ? Math.floor((new Date()-new Date(c.dob))/(365.25*24*60*60*1000)) : null;
+  document.getElementById('child-basic-info').innerHTML = `
+    <div class="info-item"><label>Name</label><span>${c.name||'—'}</span></div>
+    <div class="info-item"><label>Date of Birth</label><span>${c.dob?fmtDate(c.dob):'—'}${age!==null?' (age '+age+')':''}</span></div>
+    <div class="info-item"><label>Blood Type</label><span>${c.bloodType||'—'}</span></div>
+    <div class="info-item"><label>Allergies</label><span>${c.allergies||'—'}</span></div>
+  `;
+  document.getElementById('child-medical-info').innerHTML = `
+    <div class="info-grid">
+      <div class="info-item"><label>Pediatrician</label><span>${c.pedName||'—'}</span></div>
+      <div class="info-item"><label>Phone</label><span>${c.pedPhone||'—'}</span></div>
+      <div class="info-item" style="grid-column:1/-1"><label>Insurance</label><span>${c.insurance||'—'}</span></div>
+      <div class="info-item" style="grid-column:1/-1"><label>Medications</label><span>${c.medications||'—'}</span></div>
+      <div class="info-item" style="grid-column:1/-1"><label>Notes</label><span>${c.medNotes||'—'}</span></div>
+    </div>`;
+  document.getElementById('child-school-info').innerHTML = `
+    <div class="info-grid">
+      <div class="info-item"><label>School</label><span>${c.schoolName||'—'}</span></div>
+      <div class="info-item"><label>Grade</label><span>${c.grade||'—'}</span></div>
+      <div class="info-item"><label>Teacher</label><span>${c.teacher||'—'}</span></div>
+      <div class="info-item"><label>Phone</label><span>${c.schoolPhone||'—'}</span></div>
+      <div class="info-item" style="grid-column:1/-1"><label>Notes</label><span>${c.schoolNotes||'—'}</span></div>
+    </div>`;
+  document.getElementById('child-emergency-info').innerHTML = `
+    <div class="info-grid">
+      <div class="info-item"><label>Contact 1</label><span>${c.ec1Name||'—'}</span></div>
+      <div class="info-item"><label>Phone</label><span>${c.ec1Phone||'—'}</span></div>
+      <div class="info-item"><label>Contact 2</label><span>${c.ec2Name||'—'}</span></div>
+      <div class="info-item"><label>Phone</label><span>${c.ec2Phone||'—'}</span></div>
+    </div>`;
+}
+
+function saveChildInfo() {
+  const d = getData();
+  d.child = {
+    name: v('ch-name'), dob: v('ch-dob'), bloodType: v('ch-blood'), allergies: v('ch-allergies'),
+    pedName: v('ch-ped-name'), pedPhone: v('ch-ped-phone'), insurance: v('ch-insurance'),
+    medications: v('ch-medications'), medNotes: v('ch-med-notes'),
+    schoolName: v('ch-school-name'), grade: v('ch-grade'), teacher: v('ch-teacher'),
+    schoolPhone: v('ch-school-phone'), schoolNotes: v('ch-school-notes'),
+    ec1Name: v('ch-ec1-name'), ec1Phone: v('ch-ec1-phone'),
+    ec2Name: v('ch-ec2-name'), ec2Phone: v('ch-ec2-phone')
+  };
+  saveData(d); closeModal('child-edit-modal'); renderChild();
+}
+
+function openChildEdit() {
+  const d = getData(); const c = d.child;
+  ['ch-name','ch-dob','ch-blood','ch-allergies','ch-ped-name','ch-ped-phone',
+   'ch-insurance','ch-medications','ch-med-notes','ch-school-name','ch-grade',
+   'ch-teacher','ch-school-phone','ch-school-notes','ch-ec1-name','ch-ec1-phone',
+   'ch-ec2-name','ch-ec2-phone'].forEach(id => {
+    const field = id.replace('ch-','').replace(/-./g,m=>m[1].toUpperCase());
+    // map dash names to object keys
+    const keyMap = {'name':'name','dob':'dob','blood':'bloodType','allergies':'allergies',
+      'pedName':'pedName','pedPhone':'pedPhone','insurance':'insurance',
+      'medications':'medications','medNotes':'medNotes','schoolName':'schoolName',
+      'grade':'grade','teacher':'teacher','schoolPhone':'schoolPhone',
+      'schoolNotes':'schoolNotes','ec1Name':'ec1Name','ec1Phone':'ec1Phone',
+      'ec2Name':'ec2Name','ec2Phone':'ec2Phone'};
+    const key = id.replace('ch-','').replace(/-([a-z])/g,(_,l)=>l.toUpperCase());
+    const el = document.getElementById(id);
+    if (el && c[key] !== undefined) el.value = c[key]||'';
+  });
+  openModal('child-edit-modal');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderSettings() {
+  const d = getData();
+  document.getElementById('settings-onedrive').value = d.meta.oneDrivePath||'';
+  document.getElementById('settings-support-amount').value = d.meta.courtOrderedSupport||'';
+}
+
+function saveSettings() {
+  const d = getData();
+  d.meta.oneDrivePath = document.getElementById('settings-onedrive').value;
+  d.meta.courtOrderedSupport = parseFloat(document.getElementById('settings-support-amount').value)||0;
+  saveData(d);
+  showToast('Settings saved!');
+}
+
+function editOrderedAmount() {
+  const d = getData();
+  const val = prompt('Enter court-ordered monthly child support amount:', d.meta.courtOrderedSupport||'');
+  if (val !== null) {
+    d.meta.courtOrderedSupport = parseFloat(val)||0;
+    saveData(d); renderSupport();
+  }
+}
+
+// ============================================================
+// EDIT EXISTING ENTRY
+// ============================================================
+const sectionModals = {
+  support: 'support-modal', incidents: 'incident-modal', visitation: 'visitation-modal',
+  communications: 'comm-modal', court: 'court-modal', expenses: 'expense-modal',
+  assets: 'asset-modal', witnesses: 'witness-modal', contacts: 'contact-modal'
+};
+
+const sectionFields = {
+  support: {date:'cs-date',status:'cs-status',amount:'cs-amount',method:'cs-method',notes:'cs-notes'},
+  incidents: {date:'inc-date',time:'inc-time',type:'inc-type',severity:'inc-severity',location:'inc-location',description:'inc-desc',witnesses:'inc-witnesses',evidence:'inc-evidence',injuries:'inc-injuries',actions:'inc-actions'},
+  visitation: {date:'vis-date',scheduledTime:'vis-time',type:'vis-type',childPresent:'vis-child-present',reason:'vis-reason',notes:'vis-notes',noticeMethod:'vis-notice-method',childReaction:'vis-child-reaction'},
+  communications: {date:'comm-date',time:'comm-time',method:'comm-method',initiatedBy:'comm-initiated',tone:'comm-tone',flag:'comm-flag',summary:'comm-summary',evidence:'comm-evidence'},
+  court: {date:'court-date',time:'court-time',type:'court-type',status:'court-status',location:'court-location',description:'court-desc',outcome:'court-outcome'},
+  expenses: {date:'exp-date',category:'exp-category',description:'exp-desc',amount:'exp-amount',paidBy:'exp-paid',reimbursed:'exp-reimbursed',notes:'exp-notes'},
+  assets: {name:'asset-name',type:'asset-type',value:'asset-value',owner:'asset-owner',status:'asset-status',notes:'asset-notes'},
+  witnesses: {name:'wit-name',relationship:'wit-relationship',phone:'wit-phone',email:'wit-email',knowledge:'wit-knowledge',notes:'wit-notes'},
+  contacts: {name:'con-name',role:'con-role',phone:'con-phone',email:'con-email',notes:'con-notes'}
+};
+
+function editEntry(section, id) {
+  const d = getData();
+  const arr = d[section];
+  const entry = arr.find(x=>x.id===id);
+  if (!entry) return;
+  editingId = id;
+  const fields = sectionFields[section];
+  Object.entries(fields).forEach(([key, elId]) => {
+    const el = document.getElementById(elId);
+    if (el && entry[key] !== undefined) el.value = entry[key];
+  });
+  openModal(sectionModals[section]);
+}
+
+// ============================================================
+// DELETE
+// ============================================================
+function confirmDelete(section, id) {
+  document.getElementById('delete-confirm-btn').onclick = () => {
+    const d = getData();
+    d[section] = d[section].filter(x=>x.id!==id);
+    saveData(d); closeModal('delete-modal');
+    renderPage(section==='communications'?'communications':section);
+  };
+  openModal('delete-modal');
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  editingId = null;
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay && overlay.id !== 'onedrive-modal') closeModal(overlay.id);
+  });
+});
+
+// ============================================================
+// FIRST RUN / ONEDRIVE
+// ============================================================
+function saveOneDrive() {
+  const path = document.getElementById('onedrive-path-input').value.trim();
+  const name = document.getElementById('user-name-input').value.trim();
+  const d = getData();
+  d.meta.oneDrivePath = path;
+  if (name) d.meta.userName = name;
+  saveData(d);
+  if (name) { document.getElementById('sidebar-username').textContent = 'Hi, ' + name + ' 💜'; }
+  closeModal('onedrive-modal');
+  showToast('Welcome! Your Safe Harbor is ready. 💜');
+}
+
+function dismissOneDrive() {
+  const d = getData();
+  d.meta.oneDrivePath = 'skipped';
+  saveData(d);
+  closeModal('onedrive-modal');
+}
+
+// ============================================================
+// BACKUP & EXPORT
+// ============================================================
+function exportAllData() {
+  const d = getData();
+  const json = JSON.stringify(d, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url; a.download = `SafeHarbor_Backup_${dateStr}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  d.meta.lastBackupDate = new Date().toDateString();
+  saveData(d);
+  showToast('✅ Backup downloaded! Save it to your OneDrive folder.');
+}
+
+function importData() {
+  document.getElementById('import-file').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const d = JSON.parse(evt.target.result);
+      if (confirm('This will replace all current data with the backup. Continue?')) {
+        saveData(d); renderPage('home'); showToast('Data restored successfully!');
+      }
+    } catch(err) { alert('Invalid backup file.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function checkFridayAutoBackup() {
+  const now = new Date();
+  if (now.getDay() !== 5) return; // 5 = Friday
+  const d = getData();
+  if (d.meta.lastBackupDate === now.toDateString()) return;
+  // Auto-download backup
+  setTimeout(() => {
+    exportAllData();
+    showToast('📁 Auto-backup for this Friday — save to your OneDrive folder!');
+  }, 2000);
+}
+
+// ============================================================
+// PDF EXPORT
+// ============================================================
+function exportPagePDF(pageId, title) {
+  const el = document.getElementById(pageId);
+  el.classList.add('print-target');
+  const opt = {
+    margin: [0.5, 0.5, 0.5, 0.5],
+    filename: title.replace(/\s+/g,'-') + '_' + new Date().toISOString().split('T')[0] + '.pdf',
+    image: {type:'jpeg', quality:0.95},
+    html2canvas: {scale:2, useCORS:true},
+    jsPDF: {unit:'in', format:'letter', orientation:'portrait'}
+  };
+  // Hide sidebar for PDF
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  const origMargin = main.style.marginLeft;
+  sidebar.style.display = 'none';
+  main.style.marginLeft = '0';
+  html2pdf().set(opt).from(el).save().then(() => {
+    sidebar.style.display = '';
+    main.style.marginLeft = origMargin;
+    el.classList.remove('print-target');
+  });
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function v(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '—';
+  const [y,m,d] = dateStr.split('-');
+  return `${m}/${d}/${y}`;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('backup-notice');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(()=>{ el.style.display='none'; }, 4000);
+}
+
+function openFeatureRequest() {
+  document.getElementById('feature-request-text').value = '';
+  document.getElementById('feature-request-name').value = '';
+  openModal('feature-modal');
+}
+
+function sendFeatureRequest() {
+  const text = document.getElementById('feature-request-text').value.trim();
+  const name = document.getElementById('feature-request-name').value.trim();
+  if (!text) { alert('Please describe your feature request before sending.'); return; }
+  const subject = encodeURIComponent('My Safe Harbor — Feature Request');
+  const body = encodeURIComponent(
+    (name ? 'From: ' + name + '\n\n' : '') +
+    'Feature Request:\n' + text + '\n\n— Sent from My Safe Harbor Dashboard'
+  );
+  window.location.href = 'mailto:nparkerriddle@gmail.com?subject=' + subject + '&body=' + body;
+  closeModal('feature-modal');
+}
+
+function clearAllData() {
+  if (confirm('Are you sure? This will permanently delete ALL your records. Export a backup first.')) {
+    if (confirm('This cannot be undone. Proceed?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  const d = getData();
+  // Show onedrive modal only if never set
+  if (d.meta.oneDrivePath) {
+    document.getElementById('onedrive-modal').classList.remove('open');
+    if (d.meta.userName) {
+      document.getElementById('sidebar-username').textContent = 'Hi, ' + d.meta.userName + ' 💜';
+    }
+  }
+  // Set today's date as default in all date fields
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[type="date"]').forEach(el => { if (!el.value) el.value = today; });
+  const now = new Date().toTimeString().slice(0,5);
+  document.querySelectorAll('input[type="time"]').forEach(el => { if (!el.value) el.value = now; });
+
+  renderHome();
+  checkFridayAutoBackup();
+});
+</script>
+</body>
+</html>
