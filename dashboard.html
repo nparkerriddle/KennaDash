@@ -162,6 +162,12 @@ textarea { resize: vertical; min-height: 80px; }
 #onedrive-modal .icon-big { font-size: 3rem; text-align: center; margin-bottom: 12px; }
 #onedrive-modal p { color: var(--text-light); font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px; }
 
+/* SYNC STATUS */
+.sync-connected { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--success-light); border: 1px solid #b0e0c8; border-radius: var(--radius-sm); font-size: 0.88rem; }
+.sync-connected strong { color: #2a6040; display: block; margin-bottom: 2px; }
+.sync-connected small { color: #4a8060; }
+.sync-disconnected { color: var(--text-light); font-size: 0.88rem; line-height: 1.6; }
+
 /* MOBILE TOP BAR */
 #mobile-topbar {
   display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 99;
@@ -270,26 +276,19 @@ textarea { resize: vertical; min-height: 80px; }
 <div class="modal-overlay open" id="onedrive-modal">
   <div class="modal">
     <div style="text-align:center">
-      <div style="font-size:3rem;margin-bottom:10px">☁️</div>
+      <div style="font-size:3rem;margin-bottom:10px">⚓</div>
       <div class="modal-title" style="justify-content:center;font-size:1.3rem;margin-bottom:10px">Welcome to My Safe Harbor</div>
     </div>
     <p style="color:var(--text-light);font-size:0.9rem;line-height:1.7;margin-bottom:16px">
-      This dashboard keeps all your records private and secure on your device. To protect your data, we recommend saving backups to your OneDrive folder every week — we'll do this automatically every Friday.
+      Your dashboard keeps all records private and secure on your device. You can sync your data to OneDrive in Settings so it stays up to date on every device — your phone, laptop, or anywhere you log in.
     </p>
-    <p style="color:var(--text-light);font-size:0.9rem;line-height:1.7;margin-bottom:16px">
-      Please locate your OneDrive folder on your computer and copy the path below (e.g., <strong>C:\Users\YourName\OneDrive\SafeHarborBackups</strong>). Create a new folder there called <strong>SafeHarborBackups</strong> if it doesn't exist yet.
-    </p>
-    <div class="form-group" style="margin-bottom:16px">
-      <label>OneDrive Backup Folder Path</label>
-      <input type="text" id="onedrive-path-input" placeholder="C:\Users\YourName\OneDrive\SafeHarborBackups" />
-    </div>
     <div class="form-group" style="margin-bottom:6px">
       <label>Your Name (optional, for reports)</label>
       <input type="text" id="user-name-input" placeholder="Your first name" />
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="dismissOneDrive()">Skip for now</button>
-      <button class="btn btn-primary" onclick="saveOneDrive()">Save & Get Started</button>
+      <button class="btn btn-primary" onclick="saveOneDrive()">Get Started</button>
     </div>
   </div>
 </div>
@@ -324,6 +323,7 @@ textarea { resize: vertical; min-height: 80px; }
     <div class="nav-item" onclick="showPage('settings')" id="nav-settings"><span class="icon">⚙️</span><span>Settings</span></div>
   </div>
   <div id="sidebar-footer">
+    <button id="sidebar-sync-btn" onclick="sidebarSync()" style="background:#fff;color:var(--primary-dark);font-weight:700;margin-bottom:8px">☁️ Sync OneDrive</button>
     <button onclick="exportAllData()">⬇️ Backup Now</button>
     <button onclick="openFeatureRequest()" style="margin-top:8px;background:rgba(242,167,195,0.25);color:#f2a7c3;">💡 Request a Feature</button>
   </div>
@@ -642,16 +642,33 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="page-title">Settings</div>
     </div>
   </div>
+
   <div class="card">
-    <div class="card-title">Backup & OneDrive</div>
-    <div class="form-group" style="max-width:500px;margin-bottom:14px">
-      <label>OneDrive Backup Folder Path</label>
-      <input type="text" id="settings-onedrive" placeholder="C:\Users\YourName\OneDrive\SafeHarborBackups" />
+    <div class="card-title">☁️ OneDrive Sync</div>
+    <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:16px">Keep your data in sync across your phone and computer. Both devices will always have your latest records.</p>
+    <div id="sync-status-area"></div>
+    <div class="btn-group" style="margin-top:14px">
+      <button class="btn btn-primary" id="sync-connect-btn" onclick="connectSyncFolder()" style="display:none">📂 Connect OneDrive Folder</button>
+      <button class="btn btn-primary" id="sync-reconnect-btn" onclick="reconnectSyncFolder()" style="display:none">🔗 Reconnect Folder</button>
+      <button class="btn btn-secondary" id="sync-now-btn" onclick="syncNow()" style="display:none">🔄 Sync Now</button>
+      <button class="btn btn-danger btn-sm" id="sync-disconnect-btn" onclick="disconnectSync()" style="display:none">Disconnect</button>
     </div>
-    <div class="alert alert-info" style="margin-bottom:14px">⚡ Auto-backup runs every Friday when you open the dashboard. You can also backup manually anytime.</div>
+    <div id="sync-manual-section" style="display:none;margin-top:16px">
+      <div class="alert alert-info" style="margin-bottom:12px">
+        📱 <strong>How to sync on mobile:</strong> Tap <em>Save Sync File</em> to download your data, then share it to your OneDrive app. On your other device, download it from OneDrive and tap <em>Load Sync File</em>.
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveSyncFile()">⬆️ Save Sync File</button>
+        <button class="btn btn-secondary" onclick="loadSyncFile()">⬇️ Load Sync File</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="card-title">Backup & Restore</div>
+    <div class="alert alert-info" style="margin-bottom:14px">⚡ Auto-backup runs every Friday when you open the dashboard. You can also download a backup anytime.</div>
     <div class="btn-group">
-      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-      <button class="btn btn-secondary" onclick="exportAllData()">⬇️ Backup Now</button>
+      <button class="btn btn-secondary" onclick="exportAllData()">⬇️ Download Backup</button>
       <button class="btn btn-secondary" onclick="importData()">⬆️ Restore from Backup</button>
     </div>
   </div>
@@ -1048,8 +1065,9 @@ textarea { resize: vertical; min-height: 80px; }
   </div>
 </div>
 
-<!-- Hidden file input for import -->
+<!-- Hidden file inputs -->
 <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)" />
+<input type="file" id="sync-import-file" accept=".json" style="display:none" onchange="handleSyncImport(event)" />
 
 <!-- Backup notice toast -->
 <div id="backup-notice">✅ Backup downloaded! Save it to your OneDrive folder.</div>
@@ -1067,12 +1085,14 @@ function getData() {
 }
 
 function saveData(d) {
+  d.meta.lastModified = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  if (syncDirHandle) writeSyncFile().catch(() => {});
 }
 
 function getDefaultData() {
   return {
-    meta: { userName: '', oneDrivePath: '', courtOrderedSupport: 0, lastBackupDate: '' },
+    meta: { userName: '', oneDrivePath: '', courtOrderedSupport: 0, lastBackupDate: '', lastModified: 0, lastSynced: 0 },
     support: [], incidents: [], visitation: [], communications: [],
     court: [], expenses: [], assets: [], witnesses: [], contacts: [],
     child: {
@@ -1589,17 +1609,310 @@ function openChildEdit() {
 }
 
 // ============================================================
+// INDEXEDDB (persist directory handle across page reloads)
+// ============================================================
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('SafeHarborDB', 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbGet(key) {
+  const db = await openIDB();
+  return new Promise(resolve => {
+    const req = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+async function idbSet(key, val) {
+  const db = await openIDB();
+  return new Promise(resolve => {
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(val, key);
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  });
+}
+async function idbDel(key) {
+  const db = await openIDB();
+  return new Promise(resolve => {
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').delete(key);
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  });
+}
+
+// ============================================================
+// ONEDRIVE SYNC (File System Access API — desktop Chrome/Edge)
+// ============================================================
+const SYNC_FILENAME = 'SafeHarbor_Sync.json';
+let syncDirHandle = null;
+
+async function initSync() {
+  if (!('showDirectoryPicker' in window)) return;
+  try {
+    const handle = await idbGet('syncDirHandle');
+    if (!handle) return;
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      syncDirHandle = handle;
+      await checkIncomingSync();
+    }
+  } catch(e) { /* stale handle — silently ignore */ }
+}
+
+async function checkIncomingSync() {
+  try {
+    const cloudData = await readSyncFile();
+    if (!cloudData) return;
+    const local = getData();
+    if ((cloudData.meta.lastModified || 0) > (local.meta.lastModified || 0)) {
+      setTimeout(() => {
+        if (confirm('Newer data found in your OneDrive sync folder — probably from another device. Load it now?')) {
+          saveData(cloudData);
+          renderHome();
+          showToast('✅ Data loaded from OneDrive!');
+        }
+      }, 600);
+    }
+  } catch(e) {}
+}
+
+async function connectSyncFolder() {
+  if (!('showDirectoryPicker' in window)) {
+    showToast('Folder sync is not supported on this browser. Use the manual sync option below.');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    await idbSet('syncDirHandle', handle);
+    syncDirHandle = handle;
+    await writeSyncFile();
+    renderSyncStatus();
+    showToast('☁️ OneDrive folder connected! Data will sync automatically.');
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Could not connect folder. Please try again.');
+  }
+}
+
+async function reconnectSyncFolder() {
+  try {
+    const handle = await idbGet('syncDirHandle');
+    if (!handle) { renderSyncStatus(); return; }
+    const perm = await handle.requestPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      syncDirHandle = handle;
+      await checkIncomingSync();
+      renderSyncStatus();
+      showToast('☁️ Sync reconnected!');
+    } else {
+      showToast('Permission denied. Try connecting the folder again.');
+    }
+  } catch(e) {
+    showToast('Could not reconnect. Try "Connect OneDrive Folder" again.');
+  }
+}
+
+async function writeSyncFile() {
+  if (!syncDirHandle) return false;
+  try {
+    const perm = await syncDirHandle.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') return false;
+    const d = getData();
+    const fileHandle = await syncDirHandle.getFileHandle(SYNC_FILENAME, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify(d, null, 2));
+    await writable.close();
+    // Record sync time without re-triggering writeSyncFile
+    const d2 = getData();
+    d2.meta.lastSynced = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(d2));
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function readSyncFile() {
+  if (!syncDirHandle) return null;
+  try {
+    const fileHandle = await syncDirHandle.getFileHandle(SYNC_FILENAME);
+    const file = await fileHandle.getFile();
+    return JSON.parse(await file.text());
+  } catch(e) {
+    return null;
+  }
+}
+
+async function syncNow() {
+  if (!syncDirHandle) {
+    showToast('No sync folder connected. Go to Settings → OneDrive Sync.');
+    return;
+  }
+  try {
+    const perm = await syncDirHandle.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') { showToast('Permission denied for sync folder.'); return; }
+    const cloudData = await readSyncFile();
+    const local = getData();
+    if (cloudData && (cloudData.meta.lastModified || 0) > (local.meta.lastModified || 0)) {
+      if (confirm('Newer data found in your OneDrive folder — probably from your other device. Load it?')) {
+        saveData(cloudData);
+        renderHome();
+        showToast('✅ Loaded newer data from OneDrive!');
+        return;
+      }
+    }
+    const ok = await writeSyncFile();
+    showToast(ok ? '☁️ Data saved to your OneDrive sync file!' : 'Sync failed. Check folder permissions.');
+    renderSyncStatus();
+  } catch(e) {
+    showToast('Sync error. Please try again.');
+  }
+}
+
+async function sidebarSync() {
+  const btn = document.getElementById('sidebar-sync-btn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Syncing…';
+  btn.disabled = true;
+  if (!syncDirHandle) {
+    // Check if a handle is stored and try to reconnect silently
+    const stored = await idbGet('syncDirHandle');
+    if (stored) {
+      const perm = await stored.requestPermission({ mode: 'readwrite' });
+      if (perm === 'granted') {
+        syncDirHandle = stored;
+      }
+    }
+  }
+  if (!syncDirHandle) {
+    btn.textContent = orig;
+    btn.disabled = false;
+    showPage('settings');
+    showToast('Connect your OneDrive folder first in Settings.');
+    return;
+  }
+  await syncNow();
+  btn.textContent = orig;
+  btn.disabled = false;
+}
+
+async function disconnectSync() {
+  if (!confirm('Disconnect the OneDrive sync folder? Your data stays on this device.')) return;
+  await idbDel('syncDirHandle');
+  syncDirHandle = null;
+  renderSyncStatus();
+  showToast('Sync folder disconnected.');
+}
+
+function renderSyncStatus() {
+  const statusArea = document.getElementById('sync-status-area');
+  if (!statusArea) return;
+
+  const connectBtn    = document.getElementById('sync-connect-btn');
+  const reconnectBtn  = document.getElementById('sync-reconnect-btn');
+  const syncNowBtn    = document.getElementById('sync-now-btn');
+  const disconnectBtn = document.getElementById('sync-disconnect-btn');
+  const manualSection = document.getElementById('sync-manual-section');
+
+  const supported = 'showDirectoryPicker' in window;
+
+  if (!supported) {
+    // Mobile / Firefox / Safari — show manual sync
+    statusArea.innerHTML = '<p class="sync-disconnected">Automatic folder sync is not available on this browser.</p>';
+    connectBtn.style.display    = 'none';
+    reconnectBtn.style.display  = 'none';
+    syncNowBtn.style.display    = 'none';
+    disconnectBtn.style.display = 'none';
+    manualSection.style.display = '';
+    return;
+  }
+
+  manualSection.style.display = 'none';
+
+  if (syncDirHandle) {
+    const d = getData();
+    const ts = d.meta.lastSynced ? new Date(d.meta.lastSynced).toLocaleString() : 'not yet this session';
+    statusArea.innerHTML = `
+      <div class="sync-connected">
+        <span style="font-size:1.5rem">✅</span>
+        <div>
+          <strong>Connected: ${syncDirHandle.name}</strong>
+          <small>Last synced: ${ts}</small>
+        </div>
+      </div>`;
+    connectBtn.style.display    = 'none';
+    reconnectBtn.style.display  = 'none';
+    syncNowBtn.style.display    = '';
+    disconnectBtn.style.display = '';
+  } else {
+    // Check if a handle is stored but needs permission
+    idbGet('syncDirHandle').then(stored => {
+      if (stored) {
+        statusArea.innerHTML = '<p class="sync-disconnected">⚠️ Sync folder saved but needs permission — click <strong>Reconnect</strong> to resume automatic sync.</p>';
+        connectBtn.style.display    = 'none';
+        reconnectBtn.style.display  = '';
+        syncNowBtn.style.display    = 'none';
+        disconnectBtn.style.display = '';
+      } else {
+        statusArea.innerHTML = '<p class="sync-disconnected">Connect your OneDrive folder once and your data will sync automatically every time you save.</p>';
+        connectBtn.style.display    = '';
+        reconnectBtn.style.display  = 'none';
+        syncNowBtn.style.display    = 'none';
+        disconnectBtn.style.display = 'none';
+      }
+    });
+  }
+}
+
+// Manual sync (mobile / unsupported browsers)
+function saveSyncFile() {
+  const d = getData();
+  const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'SafeHarbor_Sync.json';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Sync file saved — move it to your OneDrive folder.');
+}
+
+function loadSyncFile() {
+  document.getElementById('sync-import-file').click();
+}
+
+function handleSyncImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const d = JSON.parse(evt.target.result);
+      if (confirm('Load data from this sync file? This will replace your current data.')) {
+        saveData(d);
+        renderHome();
+        showToast('✅ Data loaded from sync file!');
+      }
+    } catch(err) { alert('Invalid sync file.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ============================================================
 // SETTINGS
 // ============================================================
 function renderSettings() {
   const d = getData();
-  document.getElementById('settings-onedrive').value = d.meta.oneDrivePath||'';
   document.getElementById('settings-support-amount').value = d.meta.courtOrderedSupport||'';
+  renderSyncStatus();
 }
 
 function saveSettings() {
   const d = getData();
-  d.meta.oneDrivePath = document.getElementById('settings-onedrive').value;
   d.meta.courtOrderedSupport = parseFloat(document.getElementById('settings-support-amount').value)||0;
   saveData(d);
   showToast('Settings saved!');
@@ -1682,10 +1995,9 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // FIRST RUN / ONEDRIVE
 // ============================================================
 function saveOneDrive() {
-  const path = document.getElementById('onedrive-path-input').value.trim();
   const name = document.getElementById('user-name-input').value.trim();
   const d = getData();
-  d.meta.oneDrivePath = path;
+  d.meta.oneDrivePath = 'done';
   if (name) d.meta.userName = name;
   saveData(d);
   if (name) { document.getElementById('sidebar-username').textContent = 'Hi, ' + name + ' 💜'; }
@@ -1695,7 +2007,7 @@ function saveOneDrive() {
 
 function dismissOneDrive() {
   const d = getData();
-  d.meta.oneDrivePath = 'skipped';
+  d.meta.oneDrivePath = 'done';
   saveData(d);
   closeModal('onedrive-modal');
 }
@@ -1824,7 +2136,7 @@ function clearAllData() {
 // ============================================================
 // INIT
 // ============================================================
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   const d = getData();
   // Show onedrive modal only if never set
   if (d.meta.oneDrivePath) {
@@ -1840,6 +2152,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('input[type="time"]').forEach(el => { if (!el.value) el.value = now; });
 
   renderHome();
+  await initSync();
   checkFridayAutoBackup();
 });
 </script>
