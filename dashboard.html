@@ -257,6 +257,15 @@ textarea { resize: vertical; min-height: 80px; }
 
 .progress-bar-wrap { background: var(--lavender); border-radius: 20px; height: 10px; overflow: hidden; margin-top: 6px; }
 .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); border-radius: 20px; transition: width 0.5s; }
+
+/* SCREENSHOT THUMBNAILS */
+.screenshot-thumb { position: relative; width: 72px; height: 72px; border-radius: 6px; overflow: hidden; border: 1.5px solid var(--border); flex-shrink: 0; }
+.screenshot-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
+.ss-remove { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.65); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 13px; cursor: pointer; padding: 0; line-height: 18px; text-align: center; }
+#lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+#lightbox.open { display: flex; }
+#lightbox img { max-width: 100%; max-height: 90vh; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
+#lightbox-close { position: absolute; top: 14px; right: 18px; color: #fff; font-size: 2.2rem; cursor: pointer; background: none; border: none; line-height: 1; opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -467,7 +476,7 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="page-subtitle">Log all contact with him — text, call, email, in-person</div>
     </div>
     <div class="btn-group">
-      <button class="btn btn-primary" onclick="openModal('comm-modal')">+ Log Communication</button>
+      <button class="btn btn-primary" onclick="openCommModal()">+ Log Communication</button>
       <button class="btn btn-secondary" onclick="exportPagePDF('page-communications','Communication Log')">📄 PDF</button>
     </div>
   </div>
@@ -829,7 +838,16 @@ textarea { resize: vertical; min-height: 80px; }
         <select id="comm-flag"><option value="No">No</option><option value="Yes">Yes — needs review</option></select>
       </div>
       <div class="form-group full"><label>Summary</label><textarea id="comm-summary" style="min-height:100px" placeholder="What was discussed? Include key statements or demands made..."></textarea></div>
-      <div class="form-group full"><label>Evidence / Screenshots</label><input type="text" id="comm-evidence" placeholder="Note where screenshots are saved, or paste key quotes" /></div>
+      <div class="form-group full"><label>Evidence Notes</label><textarea id="comm-evidence" placeholder="Paste key quotes, describe screenshot contents, or note where other evidence is saved..." style="min-height:60px"></textarea></div>
+      <div class="form-group full">
+        <label>Screenshots / Photos</label>
+        <div id="screenshot-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;min-height:4px"></div>
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          📎 Attach Screenshots
+          <input type="file" id="screenshot-upload" accept="image/*" multiple style="display:none" onchange="handleScreenshotUpload(event)" />
+        </label>
+        <small style="display:block;margin-top:6px;color:var(--text-light)">Images are stored on this device. Tap a thumbnail to view full size.</small>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('comm-modal')">Cancel</button>
@@ -1068,6 +1086,12 @@ textarea { resize: vertical; min-height: 80px; }
 <!-- Hidden file inputs -->
 <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)" />
 <input type="file" id="sync-import-file" accept=".json" style="display:none" onchange="handleSyncImport(event)" />
+
+<!-- Lightbox for full-size screenshot view -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
+</div>
 
 <!-- Backup notice toast -->
 <div id="backup-notice">✅ Backup downloaded! Save it to your OneDrive folder.</div>
@@ -1333,6 +1357,75 @@ function saveVisitation() {
 }
 
 // ============================================================
+// SCREENSHOTS
+// ============================================================
+let pendingScreenshots = []; // {id, name, dataUrl} — active while comm modal is open
+
+function openCommModal() {
+  pendingScreenshots = [];
+  openModal('comm-modal');
+  renderScreenshotPreviews();
+}
+
+function handleScreenshotUpload(e) {
+  const files = Array.from(e.target.files);
+  e.target.value = '';
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    compressImage(file, dataUrl => {
+      pendingScreenshots.push({ id: genId(), name: file.name, dataUrl });
+      renderScreenshotPreviews();
+    });
+  });
+}
+
+function compressImage(file, callback) {
+  const reader = new FileReader();
+  reader.onload = evt => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1400;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.78));
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderScreenshotPreviews() {
+  const container = document.getElementById('screenshot-preview');
+  if (!container) return;
+  container.innerHTML = pendingScreenshots.map(s => `
+    <div class="screenshot-thumb">
+      <img src="${s.dataUrl}" alt="${s.name}" onclick="openLightbox('${s.id}')" />
+      <button class="ss-remove" onclick="removeScreenshot('${s.id}')" title="Remove">×</button>
+    </div>`).join('');
+}
+
+function removeScreenshot(id) {
+  pendingScreenshots = pendingScreenshots.filter(s => s.id !== id);
+  renderScreenshotPreviews();
+}
+
+function openLightbox(id) {
+  const s = pendingScreenshots.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('lightbox-img').src = s.dataUrl;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+}
+
+// ============================================================
 // COMMUNICATIONS
 // ============================================================
 function renderComms() {
@@ -1341,16 +1434,20 @@ function renderComms() {
   const empty = document.getElementById('comm-empty');
   const sorted = [...d.communications].sort((a,b)=>new Date(b.date+' '+b.time)-new Date(a.date+' '+a.time));
   const toneClass = {Threatening:'badge-danger',Abusive:'badge-danger',Harassing:'badge-warning',Tense:'badge-warning',Normal:'badge-neutral',Positive:'badge-success'};
-  tbody.innerHTML = sorted.map(c=>`
+  tbody.innerHTML = sorted.map(c=>{
+    const ssCount = (c.screenshots||[]).length;
+    const ssTag = ssCount ? `<br><span style="font-size:0.75rem;color:var(--primary)">📷 ${ssCount} screenshot${ssCount>1?'s':''}</span>` : '';
+    return `
     <tr>
       <td>${fmtDate(c.date)}<br><span style="font-size:0.8rem;color:var(--text-light)">${c.time||''}</span></td>
       <td>${c.method}</td>
       <td>${c.initiatedBy}</td>
       <td><span class="badge ${toneClass[c.tone]||'badge-neutral'}">${c.tone}</span></td>
-      <td style="max-width:220px;font-size:0.85rem">${c.summary.substring(0,100)}${c.summary.length>100?'...':''}</td>
+      <td style="max-width:220px;font-size:0.85rem">${c.summary.substring(0,100)}${c.summary.length>100?'...':''}${ssTag}</td>
       <td>${c.flag==='Yes'?'<span class="badge badge-danger">🚩 Yes</span>':'—'}</td>
       <td><div class="btn-group"><button class="btn btn-sm btn-secondary" onclick="editEntry('communications','${c.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="confirmDelete('communications','${c.id}')">Del</button></div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   empty.style.display = sorted.length ? 'none' : 'block';
 }
 
@@ -1359,11 +1456,13 @@ function saveComm() {
   const entry = {
     id: editingId||genId(), date: v('comm-date'), time: v('comm-time'),
     method: v('comm-method'), initiatedBy: v('comm-initiated'), tone: v('comm-tone'),
-    flag: v('comm-flag'), summary: v('comm-summary'), evidence: v('comm-evidence')
+    flag: v('comm-flag'), summary: v('comm-summary'), evidence: v('comm-evidence'),
+    screenshots: pendingScreenshots
   };
   if (editingId) { const i = d.communications.findIndex(x=>x.id===editingId); if(i>-1) d.communications[i]=entry; }
   else d.communications.push(entry);
   saveData(d); closeModal('comm-modal'); renderComms(); editingId=null;
+  pendingScreenshots = [];
 }
 
 // ============================================================
@@ -1959,7 +2058,13 @@ function editEntry(section, id) {
     const el = document.getElementById(elId);
     if (el && entry[key] !== undefined) el.value = entry[key];
   });
-  openModal(sectionModals[section]);
+  if (section === 'communications') {
+    pendingScreenshots = [...(entry.screenshots || [])];
+    openModal('comm-modal');
+    renderScreenshotPreviews();
+  } else {
+    openModal(sectionModals[section]);
+  }
 }
 
 // ============================================================
